@@ -21,7 +21,8 @@ namespace WebApiServer.Services
             { 
                 ClientPrompt = clientRequest.Prompt ?? throw new ArgumentNullException(nameof(clientRequest.Prompt)),
                 Status = "PENDING",
-                SubmissionTime = DateTime.UtcNow
+                SubmissionTime = DateTime.UtcNow,
+                PreviousRequestId = previousRequestId  // Store the previous request ID for conversation chains
             };
 
             _requests[newState.RequestId] = newState;

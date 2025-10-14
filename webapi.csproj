@@ -11,6 +11,31 @@
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
+    
+    <!-- gRPC Support -->
+    <PackageReference Include="Grpc.AspNetCore" Version="2.66.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.66.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.27.5" />
+    <PackageReference Include="Grpc.Tools" Version="2.66.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    
+    <!-- SOAP/XML Web Service Support -->
+    <PackageReference Include="SoapCore" Version="1.1.0.44" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- gRPC Proto Files -->
+    <Protobuf Include="Protos\aiservice.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <!-- Exclude client projects from server compilation -->
+  <ItemGroup>
+    <Compile Remove="clients\**" />
+    <EmbeddedResource Remove="clients\**" />
+    <None Remove="clients\**" />
   </ItemGroup>
 
 </Project>

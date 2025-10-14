@@ -11,6 +11,7 @@ namespace WebApiServer.Models
         public string Status { get; set; } = "PENDING";
         public string? Result { get; set; }
         public DateTime SubmissionTime { get; set; } = DateTime.UtcNow;
+        public string? PreviousRequestId { get; set; }  // Added to track conversation chains
         // public List<OpenAI.Chat.ChatMessage> ConversationHistory { get; set; } = new List<OpenAI.Chat.ChatMessage>();
     }
 

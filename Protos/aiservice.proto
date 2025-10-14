@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option csharp_namespace = "WebApiServer.Grpc";
+
+package aiservice;
+
+// The AI Text Generation service definition
+service AiTextService {
+  // Submits a text generation request and returns a request ID
+  rpc SubmitRequest (TextGenerationRequest) returns (SubmitResponse);
+  
+  // Gets the status and result of a previously submitted request
+  rpc GetRequestStatus (StatusRequest) returns (RequestStatusResponse);
+  
+  // Stream-based method to get real-time updates (optional enhancement)
+  rpc StreamRequestStatus (StatusRequest) returns (stream RequestStatusResponse);
+}
+
+// Request message for text generation
+message TextGenerationRequest {
+  string prompt = 1;                    // The text prompt to process
+  string previous_request_id = 2;       // Optional: ID of previous request for context
+}
+
+// Response when submitting a request
+message SubmitResponse {
+  string request_id = 1;                // Unique identifier for the request
+  string status = 2;                    // Initial status (usually "PENDING")
+  string submission_time = 3;           // When the request was submitted
+}
+
+// Request message for checking status
+message StatusRequest {
+  string request_id = 1;                // The request ID to check
+}
+
+// Response with request status and result
+message RequestStatusResponse {
+  string request_id = 1;                // The request ID
+  string status = 2;                    // Current status: PENDING, PROCESSING, COMPLETE, FAILED
+  string result = 3;                    // The generated text (when status is COMPLETE) or error message (when FAILED)
+  string submission_time = 4;           // When the request was originally submitted
+  string client_prompt = 5;             // The original prompt (for reference)
+  string previous_request_id = 6;       // Previous request ID if this was a follow-up
+}

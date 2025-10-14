@@ -1,0 +1,120 @@
+# Multi-Protocol AI Text Generation Service Test Endpoints
+
+This file contains examples for testing all three communication protocols: REST, gRPC, and SOAP.
+
+## 1. REST API (HTTP) - Original Implementation
+
+### Submit Request
+POST http://localhost:5166/api/generate
+Content-Type: application/json
+
+{
+    "prompt": "Write a short poem about distributed systems",
+    "previousRequestId": null
+}
+
+### Check Status  
+GET http://localhost:5166/api/status/{{requestId}}
+
+---
+
+## 2. gRPC Testing
+
+### Using grpcurl (command line tool)
+
+#### Submit Request
+```bash
+grpcurl -plaintext -d '{
+  "prompt": "Write a short poem about distributed systems",
+  "previous_request_id": ""
+}' localhost:5166 aiservice.AiTextService/SubmitRequest
+```
+
+#### Check Status
+```bash
+grpcurl -plaintext -d '{
+  "request_id": "YOUR_REQUEST_ID_HERE"
+}' localhost:5166 aiservice.AiTextService/GetRequestStatus
+```
+
+#### Stream Status (real-time updates)
+```bash
+grpcurl -plaintext -d '{
+  "request_id": "YOUR_REQUEST_ID_HERE"  
+}' localhost:5166 aiservice.AiTextService/StreamRequestStatus
+```
+
+#### List Available Methods
+```bash
+grpcurl -plaintext localhost:5166 list
+grpcurl -plaintext localhost:5166 list aiservice.AiTextService
+```
+
+---
+
+## 3. SOAP/XML Web Service Testing
+
+### Service Endpoints
+- **Service URL**: http://localhost:5166/soap/AiTextService.asmx
+- **WSDL**: http://localhost:5166/soap/AiTextService.asmx?wsdl
+
+### Submit Request (SOAP)
+POST http://localhost:5166/soap/AiTextService.asmx
+Content-Type: text/xml; charset=utf-8
+SOAPAction: "http://webapi.distributedlab.com/soap/IAiTextSoapService/SubmitTextRequest"
+
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <SubmitTextRequest xmlns="http://webapi.distributedlab.com/soap">
+      <request>
+        <Prompt>Write a short poem about distributed systems</Prompt>
+        <PreviousRequestId></PreviousRequestId>
+      </request>
+    </SubmitTextRequest>
+  </soap:Body>
+</soap:Envelope>
+
+### Check Status (SOAP)
+POST http://localhost:5166/soap/AiTextService.asmx
+Content-Type: text/xml; charset=utf-8
+SOAPAction: "http://webapi.distributedlab.com/soap/IAiTextSoapService/GetRequestStatus"
+
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <GetRequestStatus xmlns="http://webapi.distributedlab.com/soap">
+      <request>
+        <RequestId>YOUR_REQUEST_ID_HERE</RequestId>
+      </request>
+    </GetRequestStatus>
+  </soap:Body>
+</soap:Envelope>
+
+---
+
+## Testing Workflow
+
+1. **Start the service**: `dotnet run`
+2. **Submit a request** using any protocol (REST, gRPC, or SOAP)  
+3. **Copy the returned request ID**
+4. **Poll for status** using the same or different protocol
+5. **Wait for completion** (status changes from PENDING → PROCESSING → COMPLETE/FAILED)
+
+## Key Features Demonstrated
+
+- **Protocol Interoperability**: Submit via REST, check status via gRPC, etc.
+- **Shared State**: All protocols use the same RequestQueueService
+- **Consistent Behavior**: Same rate limiting and processing logic
+- **Error Handling**: Each protocol handles errors appropriately
+- **Streaming Support**: gRPC offers real-time status streaming
+
+## Installation Notes
+
+For gRPC testing, install grpcurl:
+```bash
+# Windows (using Chocolatey)
+choco install grpcurl
+
+# Or download from: https://github.com/fullstorydev/grpcurl/releases
+```
