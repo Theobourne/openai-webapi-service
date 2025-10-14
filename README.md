@@ -133,23 +133,6 @@ Use the included `webapi.http` file with VS Code REST Client extension for manua
 
 This project was developed as part of the Distributed Systems course at Kaunas Technical University, demonstrating practical application of theoretical distributed systems concepts in a real-world scenario.
 
-## ⚠️ Development Notes
-
-- Azure OpenAI credentials are currently hardcoded (development only)
-- In-memory state storage (suitable for demonstration purposes)
-- HTTPS disabled in development configuration
-- Extensive console logging for debugging and learning
-
-## 🚀 Production Considerations
-
-For production deployment, consider:
-- Moving credentials to environment variables or Azure Key Vault
-- Implementing persistent storage (database)
-- Adding authentication and authorization
-- Enabling HTTPS redirection
-- Implementing structured logging
-- Adding monitoring and health checks
-
 ## 📝 License
 
 This project is for educational purposes as part of university coursework.
