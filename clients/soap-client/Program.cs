@@ -10,37 +10,52 @@ namespace SoapClient
         
         static async Task Main(string[] args)
         {
-            Console.WriteLine("=== SOAP/XML Web Service Client for AI Text Generation ===");
+            Console.WriteLine("=== Interactive SOAP/XML Web Service Client for AI Text Generation ===");
             Console.WriteLine($"Connecting to SOAP service at {SoapServiceUrl}");
+            Console.WriteLine("Type 'exit' or 'quit' to stop the client.\n");
             
-            try
+            while (true)
             {
-                // Step 1: Submit a request via SOAP
-                Console.WriteLine("\n1. Submitting text generation request via SOAP...");
-                string requestId = await SubmitTextRequest("Write a limerick about XML and SOAP protocols");
-                
-                if (!string.IsNullOrEmpty(requestId))
+                try
                 {
-                    Console.WriteLine($"✓ Request submitted successfully!");
-                    Console.WriteLine($"  Request ID: {requestId}");
+                    // Get prompt from user
+                    Console.Write("Enter your prompt: ");
+                    string? userPrompt = Console.ReadLine();
                     
-                    // Step 2: Poll for status until completion
-                    Console.WriteLine($"\n2. Polling for status via SOAP...");
-                    await PollForCompletion(requestId);
+                    // Check for exit commands
+                    if (string.IsNullOrWhiteSpace(userPrompt) || 
+                        userPrompt.Equals("exit", StringComparison.OrdinalIgnoreCase) ||
+                        userPrompt.Equals("quit", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("Goodbye!");
+                        break;
+                    }
+                    
+                    Console.WriteLine($"\n📤 Submitting request via SOAP...");
+                    string requestId = await SubmitTextRequest(userPrompt);
+                    
+                    if (!string.IsNullOrEmpty(requestId))
+                    {
+                        Console.WriteLine($"✓ Request submitted successfully!");
+                        Console.WriteLine($"  Request ID: {requestId}");
+                        
+                        Console.WriteLine($"\n⏳ Waiting for response...");
+                        await PollForCompletion(requestId);
+                    }
+                    else
+                    {
+                        Console.WriteLine("✗ Failed to submit request");
+                    }
+                    
+                    Console.WriteLine("\n" + new string('=', 60) + "\n");
                 }
-                else
+                catch (Exception ex)
                 {
-                    Console.WriteLine("✗ Failed to submit request");
+                    Console.WriteLine($"\n❌ Error occurred: {ex.Message}");
+                    Console.WriteLine("Make sure the server is running on http://localhost:5166");
+                    Console.WriteLine("You can try again or type 'exit' to quit.\n");
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"\n❌ Error occurred: {ex.Message}");
-                Console.WriteLine("Make sure the server is running on http://localhost:5166");
-            }
-
-            Console.WriteLine("\nPress any key to exit...");
-            Console.ReadKey();
         }
 
         static async Task<string> SubmitTextRequest(string prompt)
@@ -50,7 +65,7 @@ namespace SoapClient
   <soap:Body>
     <SubmitTextRequest xmlns=""http://webapi.distributedlab.com/soap"">
       <request>
-        <Prompt>{prompt}</Prompt>
+        <Prompt>{System.Security.SecurityElement.Escape(prompt)}</Prompt>
         <PreviousRequestId></PreviousRequestId>
       </request>
     </SubmitTextRequest>
@@ -63,7 +78,12 @@ namespace SoapClient
             var response = await httpClient.PostAsync(SoapServiceUrl, content);
             var responseContent = await response.Content.ReadAsStringAsync();
 
-            Console.WriteLine($"  SOAP Response Status: {response.StatusCode}");
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                Console.WriteLine($"  ❌ SOAP Response Status: {response.StatusCode}");
+                Console.WriteLine($"  Response: {responseContent}");
+                return "";
+            }
             
             // Parse the SOAP response to extract the request ID
             var requestId = ExtractRequestIdFromResponse(responseContent);
@@ -97,26 +117,25 @@ namespace SoapClient
 
                 var (status, result) = ExtractStatusFromResponse(responseContent);
                 
-                Console.WriteLine($"  Poll #{pollCount} - Status: {status}");
+                Console.Write($"\r  ⌛ Poll #{pollCount} - Status: {status}");
                 
                 if (status == "COMPLETE")
                 {
-                    Console.WriteLine($"\n✓ Request completed successfully!");
-                    Console.WriteLine($"  Generated Text: {result}");
+                    Console.WriteLine($"\n\n✅ Request completed successfully!");
+                    Console.WriteLine($"📝 Generated Text:\n{result}");
                     break;
                 }
                 else if (status == "FAILED")
                 {
-                    Console.WriteLine($"\n✗ Request failed!");
-                    Console.WriteLine($"  Error: {result}");
+                    Console.WriteLine($"\n\n❌ Request failed!");
+                    Console.WriteLine($"💥 Error: {result}");
                     break;
                 }
                 
                 // Wait before polling again
                 if (status == "PENDING" || status == "PROCESSING")
                 {
-                    Console.WriteLine("    Waiting 5 seconds before next poll...");
-                    await Task.Delay(5000);
+                    await Task.Delay(3000); // Reduced to 3 seconds for better UX
                 }
             }
         }
